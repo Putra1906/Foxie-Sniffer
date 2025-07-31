@@ -20,7 +20,7 @@ To run Foxie Network Sniffer, you will need Python 3 and Scapy.
 
 1.  **Clone this repository:**
     ```bash
-    git clone https://github.com/Putra1906/Foxie-Sniffer
+    git clone https://github.com/Putra1906/Foxie-Sniffer.git
     cd foxie-network-sniffer
     ```
 

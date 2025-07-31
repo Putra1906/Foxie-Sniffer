@@ -1,5 +1,10 @@
 import argparse
 from scapy.all import *
+from colorama import init, Fore, Style
+
+init(autoreset=True)
+
+packet_count = 0
 
 def display_banner():
     """Menampilkan banner ASCII art untuk Foxie Network Sniffer."""
@@ -30,55 +35,70 @@ FFFFFFFFFFF                 OOOOOOOO      XXXXXXX       XXXXXXX IIIIIIIIII EEEEE
 
 def process_packet(packet):
     """
-    Memproses setiap paket dan menampilkannya dalam format yang terstruktur.
+    Memproses setiap paket dan menampilkannya dalam format terstruktur dengan warna.
     """
     global packet_count
     packet_count += 1
     
     output_lines = []
-    output_lines.append(f"=============== [ Paket #{packet_count} ] ===============")
+    output_lines.append(f"{Style.BRIGHT}=============== [ Paket #{packet_count} ] ===============")
 
     if packet.haslayer(IP):
         ip_src = packet[IP].src
         ip_dst = packet[IP].dst
-        output_lines.append(f"  [->] IP Layer  : {ip_src} -> {ip_dst}")
+        output_lines.append(f"{Fore.YELLOW}[->] IP Layer  : {ip_src} -> {ip_dst}")
 
         if packet.haslayer(TCP):
             tcp_sport = packet[TCP].sport
             tcp_dport = packet[TCP].dport
-            output_lines.append(f"    [TCP] Port    : {tcp_sport} -> {tcp_dport}")
+            output_lines.append(f"{Fore.CYAN}    [TCP] Port    : {tcp_sport} -> {tcp_dport}")
 
         elif packet.haslayer(UDP):
             udp_sport = packet[UDP].sport
             udp_dport = packet[UDP].dport
-            output_lines.append(f"    [UDP] Port    : {udp_sport} -> {udp_dport}")
+            output_lines.append(f"{Fore.GREEN}    [UDP] Port    : {udp_sport} -> {udp_dport}")
         
         if packet.haslayer(Raw):
             payload = packet[Raw].load
-            output_lines.append(f"    [+] Payload   : {len(payload)} bytes")
+            output_lines.append(f"{Fore.WHITE}    [+] Payload   : {len(payload)} bytes")
             output_lines.append(hexdump(payload, dump=True))
             
     if len(output_lines) > 1:
         print("\n".join(output_lines))
 
-
 def sniff_packets(interface):
-    """Memulai proses sniffing."""
+    """
+    Memulai proses sniffing pada interface yang ditentukan.
+    """
     sniff(iface=interface, store=False, prn=process_packet)
 
-
 def main():
-    """Fungsi utama."""
-    parser = argparse.ArgumentParser(description="Foxie Network Sniffer")
-    parser.add_argument("-i", "--interface", required=True, help="Interface jaringan untuk di-sniff")
+    """
+    Fungsi utama untuk menjalankan program.
+    """
+    parser = argparse.ArgumentParser(
+        description="Foxie Network Sniffer - Alat untuk menangkap dan menganalisis paket jaringan.",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument("-i", "--interface", required=True, help="Interface jaringan untuk di-sniff (contoh: eth0, wlan0)")
     args = parser.parse_args()
+
     display_banner()
+    print(f"{Style.BRIGHT}Memulai sniffer pada interface '{args.interface}'...")
+    print("Menunggu paket... Tekan Ctrl+C untuk berhenti.\n")
+
     try:
         sniff_packets(args.interface)
+    except PermissionError:
+        print(f"\n{Fore.RED}[ERROR] Operation not permitted.")
+        print(f"{Style.BRIGHT}Harap jalankan script ini dengan hak akses root menggunakan 'sudo'.")
+    except OSError as e:
+         print(f"\n{Fore.RED}[ERROR] Interface '{args.interface}' tidak ditemukan atau bermasalah.")
+         print("Pastikan nama interface sudah benar. Gunakan 'ip a' atau 'ifconfig' untuk memeriksa.")
     except KeyboardInterrupt:
-        print("\n[INFO] Foxie Network Sniffer berhenti.")
+        print(f"\n\n{Fore.YELLOW}[INFO] Foxie Network Sniffer berhenti. Sampai jumpa!")
     except Exception as e:
-        print(f"[ERROR] Terjadi kesalahan: {e}")
+        print(f"\n{Fore.RED}[ERROR] Terjadi kesalahan tak terduga: {e}")
 
 if __name__ == "__main__":
     main()

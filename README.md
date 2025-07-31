@@ -2,8 +2,6 @@
 
 A simple yet powerful network sniffer tool built with Python and Scapy to capture and analyze network traffic in real-time. This project is intended for cybersecurity educational purposes.
 
-![Usage Example](https://i.imgur.com/L3U7m7w.png) ---
-
 ## 🚀 Key Features
 
 -   **Real-Time Packet Capture:** Captures network packets on a specified interface.
